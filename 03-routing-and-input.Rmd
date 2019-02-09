@@ -5,23 +5,21 @@
 knitr::include_graphics("files/images/plumber_input.png")
 ```
 
-Plumber's first job is to execute R code in response to incoming HTTP requests, so it's important to understand how incoming HTTP requests get translated into the execution of R functions.
+La tarea principal de Plumber es ejecutar código en respuesta a un solicitud (*request*) a travez de HTTP. Por lo tanto es importante entender como solicitudes HTTP se traducen a la ejecución de funciones en R. Una solicitud HTTP tiene que ser ruteada (*routed*) a una o más funciones R. Plumber tiene dos tipos de funciones diferentes que pueden lidiar con esto: enlaces (*endpoints*) y filtros. 
 
-An incoming HTTP request must be "routed" to one or more R functions. Plumber has two distinct families of functions that it handles: endpoints and filters. 
+Tipicamente, cuando una solicitud llega a un enrutador Plumber, PLumber empieza pasando la solicitud a travez de sus filtros. Una vez que la solicitud ha sido procesada por todos los filtros, el ruteador va a mirar para ver si puede encontrar un enlace que satisface la solicitud entrante. Si encuentra uno, entonces invocará al enlance y dará respuesta a la solicitud entrante usando el valor que el enlace devolvió. Si no hay un enlace que se coincide con la solicitud, se devuelve un error `404 Not Found` cuyo comportamiento esta controlado por el método [`set404Handler`](#customize-router).
 
-Typically, when a request arrives to a Plumber router, Plumber begins by passing that request through its filters. Once the request has been processed by all the filters, the router will look for an endpoint that can satisfy the incoming request. If it finds one, it will invoke the endpoint and respond to the incoming request using the value the endpoint returned. If no endpoint matches the request, then a `404 Not Found` error will be returned (the behavior of which can be controlled by the [`set404Handler`](#customize-router) method).
+## Enlaces (*endpoints*) {#enlaces}
 
-## Endpoints {#endpoints}
-
-Endpoints are the terminal step in the process of serving a request. An endpoint can simply be viewed as the logic that is ultimately responsible for generating a response to a particular request. A request will be checked against each available endpoint until it finds an endpoint willing to serve it at which point it stops looking; i.e. a request will not ever be processed by more than one endpoint. You create an endpoint by annotating a function like so:
+Enlaces son el elemento clave para el proceso de dar respuesta a una solicitudo. Puedes pensar en un enlace simplemente como la lógica que es ultimamente responsable por la generación de una respuesta una solicitud en particular. Una solicitud se evalua contra todos los enlaces disponiblse hasta que encuentra un enlace dispuest a darle servicio, y en ese momento deja de buscar. En otras palabras, una solicitud nunca se procesa por más de ún solo enlace. Puedes crear un enlace anotando una función de la siguiente forma.
 
 ```{r, echo=FALSE, results='asis'}
 include_r("files/apis/03-01-endpoint.R")
 ```
 
-This annotation specifies that this function is responsible for generating the response to any `GET` request to `/hello`. The value returned from the function will be used as the response to the request (after being run through a serializer to e.g. convert the response into JSON). In this case, a `GET` response to `/hello` would return the content `["hello world"]` with a `JSON` `Content-Type`.
+La anotación indica que  que esta función es responsable por generar la respuesta a cualquier solicitud `GET` a `/hola`. El valor que la funcion devuelve es el valor que se usa como respuesta a la solicitud (despues de pasar por un serializador, por ejemplo para convertir la respuesta a JSON). En este caso, una respuesta `GET` a `/hola` devuelve el contenido ["hola mundo"] con un `Content-Type` tipo JSON.
 
-The annotations that generate an endpoint include:
+Las anotaciones que generan un endpoint incluyen:
 
  - `@get`
  - `@post`
@@ -29,41 +27,41 @@ The annotations that generate an endpoint include:
  - `@delete`
  - `@head`
 
-These map to the HTTP methods that an API client might send along with a request. By default when you open a page in a web browser, that sends a `GET` request to the API. But you can use other API clients (or even JavaScript inside of a web browser) to form HTTP requests using the other methods listed here. There are conventions around when each of these methods should be used which you can read more about [here](http://www.restapitutorial.com/lessons/httpmethods.html). Note that some of these conventions carry with them security implications, so it's a good idea to follow the recommended uses for each method until you fully understand why you might deviate from them.
+Estas anotaciones mapean contra metodos HTTP que un cliente (*API client*) podriía enviar junto con la solicitud. Por defecto cuando abres una pagain en un servidor web, esto hace que se envia una solicitud `GET` al API. Pero puedes usar otros clientes (inclusive puedes usar JavaScript dentro de un navegador web) para generar las solicitudes HTTP con los otros metodos que están en la lista. Hay mejores prácticas definidas para el uso de cada uno de estos metodos, y puedes leer más sobre esto [aqui](http://www.restapitutorial.com/lessons/httpmethods.html). Observa que algunas de estas prácticas conllevan implicaciones de seguridad, asi que es una buena idea de seguir los usos recomendados para cada metodo hasta que entiendes completamente porque quisieras hacerlo de otra forma.
 
-Note that a single endpoint can support multiple verbs. The following function would be used to service any incoming `GET`, `POST`, or `PUT` request to `/cars`.
+Cada uno de los enlaces puede dar soporte a múltiples verbos. La siguiente función se usaria en un servicio que reponde a cualquier solicitud `GET`, `POST` o `PUT` a `/carros`.
 
 ```r
-#' @get /cars
-#' @post /cars
-#' @put /cars
+#' @get /carros
+#' @post /carros
+#' @put /carros
 function(){
   ...
 }
 ```
 
-## Filters {#filters}
+## Filtros {#filtros}
 
-Plumber filters can be used to define a "pipeline" for handling incoming requests. This allows API authors to break down complex logic into a sequence of independent, understandable steps. Unlike endpoints, a request may go through multiple Plumber filters before a response is generated. 
+Los filtros en Plumber se puden usar para definir un conducto para procesar solicitudes entrantes. Esto permite a autores de API romper logica compleja a una secuencia de pasos independenties y entendibles. A diferencia de enlaces, una solicitud puede ir a travez de multiples filtros de Plumber antes de que se genere una respuesta.
 
-Typically, a Plumber router will pass a request through all the defined filters before it attempts to find an endpoint to satisfy the request. However, endpoints can "preempt" particular filters if they want to be considered for execution before some filter(s) registered in the router.
+Tipicamente, un ruteador Plumber pasa la solicitud a traves de todos los filtros definidos antes de tratar de buscar un enlace que satisface la solicutd. Pero, estos enlaces pueden anticiparse a filtros si quieren ser considerados para ejecución antes alguno(s) de los filtros registrados en el ruteador.
 
 // TODO: graphic
 
-Filters can do one of three things in handling a request:
+Filtros pueden hacer uno de tres cosas al procesar una solicitud:
 
-1. Forward control onto the next handler, potentially after mutating the request.
-2. Return a response itself and not forward to subsequent handlers
-3. Throw an error
+ 1. Remitir al siguiente manipulador, potencialmente tras hacerle cambios a la solicitud.
+ 2. Devolver una respuesta y no remitir nada a los manipuladores subsecuentes
+ 3. Tirar un error
 
-These three options, and why each might be desired, are discussed below.
+Abajo discutimos estas tres opciones, y cuando preferimos una sobre otra.
 
-### Forward to Another Handler
+### Remitir a otro manipulador 
 
-The most common behavior for a filter is to pass on the request to the next handler after mutating the incoming request or invoking some external side-effect. One common use case is to use a filter as a request logger:
+El comportamiento más comun para un filtro es pasar la solicitud al siguiente manipulador, despues de cambiar la solicitud entrante o invocar algun efecto secundario externo. Un caso de uso común es usar un filtro como *logger* para registrar solicitudes.
 
 ```r
-#* Log some information about the incoming request
+#* Escrigbe información sobre la solicitud entrante a la bitacora (log)
 #* @filter logger
 function(req){
   cat(as.character(Sys.time()), "-", 
@@ -73,67 +71,67 @@ function(req){
 }
 ```
 
-This filter is straightfoward: it invokes an external action (logging) and then calls `forward()` to pass control to the next handler in the pipeline (another filter or an endpoint).
+Este filtro es relativemente simple: invoca una acción externa (escribir a la bitacora) y despues llama `forward()` para pasar el control al siguiente manipulador en el conducto (otro filtro o enlace).
 
-Because the `req` and `res` parameters in Plumber are based on R environments, they exhibit "pass-by-reference" behavior. This means that changes that are made in one filter on the `req` or `res` object will be visible to other filters or endpoints also touching this same request or response.
+Como los parametros `req` y `res` en Plumber estan basados sobre entornos R, estos muestran comportamiento *pass-by-reference*. Esto significa que cambios que se hacen en un filtro sobre el objeto `req` o `res` se hace visible para los otros filtros y enlaces que tocan el la misma solicitud o respuesta.
 
-A similar filter may mutate some state on the request or response object it's given.
+Un filtro similar puede cambiar algun estado del objeto de solicitud o respuesta que se le da. 
 
 ```r
-#* @filter setuser
+#* @filter asigna_usuario
 function(req){
-  un <- req$cookies$user
-  # Make req$username available to endpoints
-  req$username <- un
+  un <- req$cookies$usuario
+  # Haz que req$username este disponible para los enlaces
+  req$nombre_usuario <- un
 
   plumber::forward()
 }
 ```
 
-In this case, the `req` object is going to be extended to have an additional property named `username` which represents a value looked up from a cookie. This `req$username` property would be available to all subsequent filters and endpoints processing this request. (Note that this example is not a secure system for authentication; see the [section on using cookies to store state](#state-cookies) for a longer discussion on why.) Once it has modified the request object, it passes control to the next handler using `forward()`.
+En este caso, el objeto `req` se extiende para tener una characteristica adicional llamada `nombre_usuario` que representa un valor que se encontró en el *cookie*. Este characteristica `req$nombre_usuario` estaría disponible para todos los filtros que vienen despues, y todos los enlaces que procesan esta solicitud. (Toma en cuenta que este ejemplo no es un sistema seguro para autenticación; vea la [sección sobre el uso de cookies para guardar estado](#state-cookies) para un discusión sobre el porque). Una vez que ha se ha modificado el objeto de solicitud, pasa el control al siguiente manipulador con `forward()`.
 
-### Return a Response
+### Devolver una respuesta
 
-It is also possible for filters to return a response. You may want to check that the request satisfies some constraint (like authentication) and -- in certain cases -- return a response without invoking any additional handlers. For example, a filter could be used to check that a user has authenticated.
+Tambien es posible usar filtros para devolver una respuesta. Quizas quieres verificar que una solicitud cumple con alguna limitación (como autenticación) y - en dados casos - devolver una respueta sin invocar manipuladores adicionales. Por ejemplo un filtro se puede usar para verificar si el usuario se ha autenticado.
 
 ```r
-#* @filter checkAuth
+#* @filter verificaAut
 function(req, res){
-  if (is.null(req$username)){
-    res$status <- 401 # Unauthorized
-    return(list(error="Authentication required"))
+  if (is.null(req$nombre_usuario)){
+    res$status <- 401 # No autorizado
+    return(list(error="Require autenticación"))
   } else {
     plumber::forward()
   }
 }
 ```
 
-A common cause of errors in Plumber APIs is forgetting to invoke `forward()` in your filters. In such a filter, the result of the last line will be silently returned as the response to the incoming request. This can cause your API to exhibit very odd behavior depending on what's being returned. When you're using filters, be sure to carefully audit all code paths to ensure that you're either calling `forward()`, causing an error, or intentionally returning a value.
+Una causa de errores común en las API Plumber es olvidar de llamar a `forward()` en tus filtros. Si ese es el caso, el resultado de la ultima linea se devuelve de forma silenciosa como la respuesta a la solicitud entrante. Eso puede resultar en comportamiento extraño de tu API, dependiendo de lo que se está devolviendo. Cuando estas usando filtros, asegurate de verificar todos los caminos deel codigo para verificar que esta llamando `forward()`, causando un error o devolviendo un valor a proposito.
 
-### Throw an Error
+### Tirar un Error
 
-Finally, a filter can throw an error. This can occur if a mistake is made in the code defining the filter or if the filter intentionally invokes `stop()` to trigger an error. In this case, the request will not be processed by any subsequent handlers and will immediately be sent to the router's error handler. See [router customization](#customize-router) for more details on how to customize this error handler.
+Finalmente, un filtro puede tirar un error. Esto puede pasar si un error fué incluido en el codigo que define el filtro, o si eel filtro llama a `stop()` a proposito para generar un error. En este caso, la solicitud no se procesa por ningun manipulador siguiente y se envia immediatamente al administrador de errores (*error handler*). Puedes ver la sección [personalización del ruteador](#customize-router) para más detalles sobre como personalizar el administrador de errores.
 
-## Dynamic Routes {#dynamic-routes}
+## Rutas dinámicas {#dynamic-routes}
 
-In addition to having hard-coded routes like `/hello`, Plumber endpoints can have dynamic routes. Dynamic routes allow endpoints to define a more flexible set of paths against which they should match.
+Además de tener rutas de codificación fija, como `/hola`, los enlaces de Plumber pueden tener rutas dinamicas. Rutas dinamicas te permiten definir una serie de caminos mas flexibles, contra los cuales tienen que coincidir tus enlaces.
 
-A common REST convention is to include the identifier of an object in the API paths associated with it. So to lookup information about user #13, you might make a `GET` request to the path `/users/13`. Rather than having to register routes for every user your API might possibly encounter, you can use a dynamic route to associate an endpoint with a variety of paths.
+Una convención común en REST es incluir el identificador de un objeto en el camino del API asociado con el. Por ejemplo, para buscar información sobre usuario #13, podrias mandar una solicitud `GET` al camino `/usuarios/13`. En vez de tener que registrar una ruta para cada uusuario que de tu API podria tener en algún momento, puedes usar una ruta dinamica para asociar un enlace con una variedad de caminos.
 
 ```{r, echo=FALSE, results='asis'}
 include_r("files/apis/03-01-dynamic.R")
 ```
 
-This API uses the dynamic path `/users/<id>` to match any request that is of the form `/users/` followed by some path element like a number or letters. In this case, it will return information about the user if a user with the associated ID was found, or an empty object if not.
+Esta API usa el camino dinamico `/users/<id>` para buscar la concidencia entre cualquier solicitud que entra con la forma `/usuarios/` seguido por un elemento adicional del caminio como un numero o una letra. En este caso va a devolver información sobre el usuario si el usuario se encontró con un ID correspondiente, o un objeto vacio si no se encontro.
 
-You can name these dynamic path elements however you'd like, but note that the name used in the dynamic path must match the name of the parameter for the function (in this case, both `id`).
+Puedes darles cualquier nombre a estos elementos del camino que te guste, pero toma en cuenta que el nombre usado en el camino dinamico tiene que coincidir con un parametro de la función (en este caso `id`). 
 
-You can even do more complex dynamic routes like:
+Puedes construir rutas dinamicas aun mas complejas como:
 
 ```r
-#' @get /user/<from>/connect/<to>
-function(from, to){
-  # Do something with the `from` and `to` variables...
+#' @get /usuario/<de>/connecta/<a>
+function(de, a){
+  # Has algo con las variables `de` y `a` ...
 }
 ```
 
@@ -220,24 +218,24 @@ Plumber routes requests based exclusively on the path and method of the incoming
 
 HTTP requests in Plumber are stored as environments and satisfy the [Rook interface](https://github.com/jeffreyhorner/Rook/blob/a5e45f751/README.md#the-environment). The expected objects for all HTTP requests are the following.
 
-Name | Example | Description
----- | ------- | -----------------------
-`cookies` | `list(cook="abc")` | A list of the cookies as described in [Cookies](#read-cookies)
-`httpuv.version` | `"1.3.3"` | The version of the underlying [`httpuv` package](https://github.com/rstudio/httpuv)
-`PATH_INFO` | `"/"` | The path of the incoming HTTP request
-`postBody` | `"a=1&b=2"` | The contents of the body of the request. Despite the name, it is available for any HTTP method.
-`QUERY_STRING` | `"?a=123&b=abc"` | The query-string portion of the HTTP request
-`REMOTE_ADDR` | `"1.2.3.4"` | The IP address of the client making the request
-`REMOTE_PORT` | `"62108"` | The client port from which the request originated
-`REQUEST_METHOD` | `"GET"` | The method used for this HTTP request
-`rook.errors` | N/A | See [Rook docs]( https://github.com/jeffreyhorner/Rook/blob/a5e45f751/README.md#the-input-stream)
-`rook.input` | N/A | See [Rook docs]( https://github.com/jeffreyhorner/Rook/blob/a5e45f751/README.md#the-error-stream)
-`rook.url_scheme` | `"http"` | The "scheme" (typically `http` or `https`).
-`rook.version` | `"1.1-0"` | The version of the rook specification which this environment satisfies
-`SCRIPT_NAME` | `""` | Unused
-`SERVER_NAME` | `"127.0.0.1"` | The host portion of the incoming request. You may favor `HTTP_HOST`, if available.
-`SERVER_PORT` | `"8000"` | The target port for the request
-`HTTP_*` | `"HTTP_USER_AGENT"` | Entries for all of the HTTP headers sent with this request.
+Nombre            |             Ejemplo | Descripción
+------------------|-------------------- | -----------------------
+`cookies`         |  `list(cook="abc")` | A list of the cookies as described in [Cookies](#read-cookies)
+`httpuv.version`  |           `"1.3.3"` | The version of the underlying [`httpuv` package](https://github.com/rstudio/httpuv)
+`PATH_INFO`       |               `"/"` | The path of the incoming HTTP request
+`postBody`        |         `"a=1&b=2"` | The contents of the body of the request. Despite the name, it is available for any HTTP method.
+`QUERY_STRING`    |    `"?a=123&b=abc"` | The query-string portion of the HTTP request
+`REMOTE_ADDR`     |         `"1.2.3.4"` | The IP address of the client making the request
+`REMOTE_PORT`     |           `"62108"` | The client port from which the request originated
+`REQUEST_METHOD`  |             `"GET"` | The method used for this HTTP request
+`rook.errors`     |                 N/A | See [Rook docs]( https://github.com/jeffreyhorner/Rook/blob/a5e45f751/README.md#the-input-stream)
+`rook.input`      |                 N/A | See [Rook docs]( https://github.com/jeffreyhorner/Rook/blob/a5e45f751/README.md#the-error-stream)
+`rook.url_scheme` |            `"http"` | The "scheme" (typically `http` or `https`).
+`rook.version`    |           `"1.1-0"` | The version of the rook specification which this environment satisfies
+`SCRIPT_NAME`     |                `""` | Unused
+`SERVER_NAME`     |       `"127.0.0.1"` | The host portion of the incoming request. You may favor `HTTP_HOST`, if available.
+`SERVER_PORT`     |            `"8000"` | The target port for the request
+`HTTP_*`          | `"HTTP_USER_AGENT"` | Entries for all of the HTTP headers sent with this request.
 
 ### Query Strings {#query-strings}
 

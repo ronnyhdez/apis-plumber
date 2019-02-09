@@ -1,5 +1,5 @@
 --- 
-title: "Creating APIs in R with Plumber"
+title: "Crea tus API en R con Plumber"
 author: "Jeff Allen"
 site: bookdown::bookdown_site
 output: bookdown::gitbook
@@ -7,7 +7,7 @@ bibliography: [book.bib]
 biblio-style: apalike
 documentclass: book
 github-repo: trestletech/apis-plumber
-description: "Use the plumber R package to create HTTP APIs in R."
+description: "Uso el paquete plumber para crear API HTTP APIs con R."
 cover-image: ./files/images/cover.jpg
 favicon: ./files/images/favicon.png
 apple-touch-icon: ./files/images/apple-icon-152x152.png
@@ -36,46 +36,48 @@ json_serialize <- function(obj){
 
 ```
 
-# Introduction {#intro}
+# Introducción {#intro}
 
 ```{r, echo=FALSE, out.width="45%", out.extra = 'style="float:right;"'}
 knitr::include_graphics("files/images/plumber_pipe.png")
 ```
 
-The R Programming Language [@R-base] has become one of the most dominant programming languages for data analysis and visualization in recent years. At the same time, web services have become a common language for allowing various systems to interact with one another. The `plumber` R package [@plumber] allows users to expose existing R code as a service available to others on the Web. Plumber is best illustrated with an example:
+El lenguaje de programación R [@R-base] se ha convertido, en los últimos años, en uno de los lenguajes más importantes para el análisis y la visualización de datos. A la misma vez, servicios web ahora son un lenguaje común para que diferentes sistemas puedan interactuar el uno con el otro. El paquete `plumber` [@plumber] permite a usuarios R presentar su código R existente como un servicio disponible para otros en la Web. 
+
+La forma más fácil de ilustrar `plumber` es con un ejemplo:
 
 ```{r, echo=FALSE, results='asis'}
 include_r("files/apis/01-01-quickstart.R")
 ```
 
-Even without knowing R, you can probably get a rough idea for what the above Plumber API will do. The first function above defines the `/echo` endpoint which simply echoes back the text that it was sent. The second function generates a plot based on Edgar Anderson's famous Iris Dataset; it includes a filter that allows the caller to subset the dataset to a particular species.
+Aún si no conoces R, probablemente puedes tener una idea aproximada de lo que el API en `plumber` arriba va a hacer. La primera función define el *endpoint* `/echo` que simplemente repite el texto que le ha sido enviado. La segunda función genera un grafico basada en el famosisimo conjunto de datos de Edgar Anderson llamado `iris`; ademas incluye un filtro que permite al usuario hacer un sub-conjunto de datos a una especie particular.
 
-Plumber makes use of these comment "annotations" above your functions to define the web service. When you feed the above file into Plumber, you'll get a runnable web service that other systems can interact with over a network.
+Plumber usa estas anotaciones en el comentario justo encima de las funciones para definir el servicio web. Si pones el archivo arriba en Plumber, lo que vas a obtener es un servicio web que corre, y con el cual otros sistemas pueden interactuar sobre una red.
 
-## Web APIs
+## Las API Web
 
-The Hypertext Transfer Protocol (HTTP) is the dominant medium by which information is exchanged on the Internet. An Application Programming Interface (API) is a broad term that defines the rules that guide your interaction with some software. In the case of HTTP APIs, you have a defined set of endpoints that accept particular inputs. Plumber translates the annotations you place on your functions into an HTTP API that can be called from other machines on your network. If you execute your Plumber API on a public server, you can even make your API available to the public Internet.
+El Protocolo de Transferencia de Hipertexto (HTTP) es el canal más importante a través intercambiamos información en internet. Una API (por las siglas en inglés de *Application Programming Interface*) es un termino amplio que define las reglas bajo las cuales puedes interactuar con software. En el caso de las API que usan HTTP, defines una serie de direcciones únicas (llamadas *endpoints*) que aceptan un input pre-definido. Plumber traduce las anotaciones que pones encima de tus funciones a un API HTTP que puedes llamar desde otras máquinas en tu red. Inclusive puedes hacer tu API disponible en el internet publico, si ejecutas tu API Plumber sobre servidor conectado con el internet.
 
-HTTP APIs have become the predominant language by which software communicates. By creating an HTTP API, you'll empower your R code to be leveraged by other services -- whether they're housed inside your organization or hosted on the other side of the world. Here are just a few ideas of the doors that are opened to you when you wrap your R code in a Plumber API:
+Las API HTTP se han convertido en el mecanismo principal con el cual software se comunica. AL crear un API HTTP, vas a darle el poder de interoperabilidad a tu código R, para que sea usado por otros servicios - no importa is están dentro de tu organización o si se hospedan al otro lado del mundo. Aquí hay un par de ideas de las cosas que podrás hacer una vez que envuelves tu código R en un API Plumber.
 
- - Software written in other languages in your organization can run your R code. Your company's Java application could now pull in a custom ggplot2 graph that you generate on-demand, or a Python client could query a predictive model defined in R.
- - You can have [some third-party](https://www.mailgun.com/) receive emails on your behalf and then notify your Plumber service when new messages arrive.
- - You could register a "[Slash Command](https://api.slack.com/slash-commands)" on Slack, enabling you to execute your R function in response to a command being entered in Slack.
- - You can write JavaScript code that queries your Plumber API from a visitor's web browser. Even further, you could use Plumber exclusively as the back-end of an interactive web application.
-   
-## Installation {#installation}
+ - Software escrito en otros lenguajes en tu organización puede correr tu código R. Por ejemplo, la aplicación escrita en Java ahora puede jalar un `ggplot` hecho a medida en el momento que lo necesite, o un cliente en Python puede hacer un llamado a un modelo predictivo que has definido en R.
+ - Puedes tener [algun proveedor](https://www.mailgun.com/) que reciba mensajes para ti, y que después notifique tu servicio en Plumber que un mensaje nuevo ha llegado.
+ - Podrías registrar un "[Comando Slash](https://api.slack.com/slash-commands)" en Slack, dándote la posibilidad de ejecutar una función R en respuesta a un comando que entra por Slack.
+   - Puedes escribir código en JavaScript que hace una solicitud de búsqueda a tu API Plumber desde el navegador de un visitante a tu página web. Inclusive podrías usar Plumber exclusivamente como el *back-end* de una aplicación web interactiva.
 
-Plumber is hosted on CRAN, so you can download and install the latest stable version and all of its dependencies by running:
+## Instalación {#instalacion}
+
+Plumber está disponible en CRAN, así que puedes bajar e instalar la última versión estable y todas sus dependencias corriendo:
 
 ```r
 install.packages("plumber")
 ```
 
-Alternatively, if you'd like to run the latest unstable development version of `plumber`, you can install it from [its GitHub repository](https://github.com/trestletech/plumber) using the `devtools` package.
+Pero también puedes correr la ultima versión de desarrollo - no estable - de `plumber`, instalando desde su  [repositorio en GitHub](https://github.com/trestletech/plumber), usando el paquete `devtools`.
 
 ```r
 install.packages("devtools")
 devtools::install_github("trestletech/plumber")
 ```
 
-Once you have `plumber` installed, see the [Quickstart](#quickstart) for information on how to get up-and-running with Plumber in minutes.
+Una vez que tienes `plumber` instalado, puedes arrancar con la  [Guia Rapida](#guiarapida) para leer como puedes tener un servicio corriendo con Plumber en minutos.
