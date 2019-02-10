@@ -1,10 +1,10 @@
 users <- data.frame(
-  uid=c(12,13),
-  username=c("kim", "john")
+  uid = c(12,13),
+  username = c("maria", "oswaldo")
 )
 
-#' Lookup a user
+#' Busca un usuario
 #' @get /users/<id>
 function(id){
-  subset(users, uid==id)
+  subset(users, uid == id)
 }

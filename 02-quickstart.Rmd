@@ -1,31 +1,31 @@
 
-# Quickstart {#quickstart}
+# Guia Rápida {#guiarapida}
 
-Plumber allows you to create APIs by merely decorating your existing R code with special annotations. The example below shows a file named `plumber.R` (the conventional name for Plumber APIs) which defines an API.
+Plumber te permite crear una API decorando tu código R con anotaciones especiales. El ejemplo aquí abajo muestra un archivo llamado `plumber.R` (el nombre común para API en Plumber) el cual define un API.
 
 ```{r, echo=FALSE, results='asis'}
 include_r("files/apis/01-01-quickstart.R")
 ```
 
-This file defines two Plumber "endpoints." One is hosted at the path `/echo` and simply echoes the message passed in; the other is hosted at the path `/plot` and returns an image showing a simple R plot.
+Este archivo define dos *endpoints*. Uno esta hospedado en el camino `/repite` y lo único que hace es repetir el mensaje que se le ha enviado como parámetro. El otro está en el camino `/grafico` y devuelve una imagen mostrando un gráfico simple en R.
 
-If you haven't installed `plumber` yet, see the [installation section](#installation). Once  you have `plumber` installed, you can use the `plumber::plumb()` function to translate this R file into a Plumber API:
+Si aún no has instalado `plumber`, mira [la sección sobre instalación](#installation). Una vez que tienes `plumber` instalado puedes usar la función `plumber::plumb()` para traducir este archivo R a un API en Plumber.
 
 ```r
 pr <- plumber::plumb("plumber.R")
 ```
 
-The `pr` object now encapsulates all the logic represented in your `plumber.R` file. The next step is to bring the API to life using the `run()` method:
+El objeto `pr` ahora contiene toda la lógica representada en tu archivo `plumber.R`. Y el siguiente paso es hacer vivir el API usando el método `run()`.
 
 ```r
 pr$run()
 ```
 
-You should see a message about your API running on your computer on port `8000`. The API will continue running in your R session until you press the `Esc` key. If you're running this code locally on your personal machine, you should be able to open [http://localhost:8000/echo](http://localhost:8000/echo) or [http://localhost:8000/plot](http://localhost:8000/plot) in a web browser to test your new API endpoints. 
- 
-> If you're using a tool like RStudio Server to run your R code on a remote machine, you should see the [networking section](#networking) for help with visiting your API.
+Si todo va bien verás un mensaje indicando que tu API esta corriendo sobre tu computador en la puerta `8000`. La API continuará corriendo en tu sesión de R hasta que presiones la tecla `ESC`. Si estas corriendo el código localmente sobre tu máquina, debería ser posible que abras la dirección [http://localhost:8000/repite](http://localhost:8000/repite) o [http://localhost:8000/grafica](http://localhost:8000/grafica) en un navegador web para probar si tus nuevos *endpoints* están corriendo.
 
-The `/echo` endpoint should show output resembling the following.
+> Si estás usando una herramienta como RStudio Server para correr to código R en una máquina remota, deberías ver la [sección sobre redes](#networking) para ver cómo visitar tu API
+
+El *endpoint* `/repite` debería mostrar algo que se parece a los siguiente.
 
 ```{r, echo=FALSE, results='asis'}
 pr <- plumber::plumb("files/apis/01-01-quickstart.R")
@@ -33,7 +33,7 @@ e <- pr$endpoints[[1]][[1]]
 code_chunk(json_serialize(e$exec()), "json")
 ```
 
-The `/plot` endpoint will show you a simple plot of some data from the iris dataset.
+El *endpoint* `/grafica` te mostrará una simple gráfica de variables en el conjunto de datos `iris`.
 
 ```{r, echo=FALSE, results='asis'}
 e <- pr$endpoints[[1]][[2]]
@@ -44,11 +44,11 @@ res <- plumber:::PlumberResponse$new()
 do.call(e[['.__enclos_env__']]$private$func, list())
 ```
 
-If you see something like the above: congratulations! You've just created your first Plumber API! You've already exercised your API from a web browser, but there's nothing stopping you from leveraging this API from third-party tools or a client developed in R or any other programming language.
+Si ves algo parecido a lo que está arriba: ¡Felicidades! ¡Acabas de crear tu primer API con Plumber!. Ya has verificado que corre en tu navegador web, pero no hay nada que te pare de usar una herramienta desarrollada para interactuar con las API REST, o llamarlo desde otro lenguaje de programación
 
-## Specifying the Inputs
+## Especificando las entradas
 
-You may have noticed that the functions that define our endpoints accept parameters. These parameters allow us to customize the behavior of our endpoints. One of the ways to do this is using "query strings" which are a way of passing parameters into an HTTP API. If you visit [http://localhost:8000/plot?spec=setosa](http://localhost:8000/plot?spec=setosa), you should see a similar graph to the one you saw before, but now the dataset has been filtered to only include the "setosa" species in the iris dataset.
+Quizás has notado que las funciones que definen nuestros endpoints aceptan parámetros. Estos parámetros nos permiten cambiar el comportamiento de nuestros endpoints. Una de las formas de hacerlo es usando *query strings*, con los cuales puede pasarles parámetros a una API HTTP. Si visitas [http://localhost:8000/grafica?spec=setosa](http://localhost:8000/grafica?spec=setosa), deberías ver una gráfica similar a la que viste antes, pero ahora con un set de datos que han sido filtrados para solamente incluir la especie *setosa* del conjunto de datos `iris`.
 
 ```{r, echo=FALSE, results='asis'}
 e <- pr$endpoints[[1]][[2]]
@@ -59,17 +59,17 @@ res <- plumber:::PlumberResponse$new()
 do.call(e[['.__enclos_env__']]$private$func, list(spec="setosa"))
 ```
 
-As you might have guessed, the `spec=setosa` portion of the URL sets the `spec` parameter to `setosa`. More details on how Plumber processes inputs are available in the [Routing & Input Chapter](#routing-and-input).
+Quizá ya lo has notado, pero la sección `spec=setosa` del URL que envías, es la que configura el parámetro `spec` a `setosa`. Más detalles sobre como Plumber procesa *inputs* están disponibles en el [Capítulo Ruteo y Entradas](#ruteo-y-entradas)
 
-## Customizing The Output
+## Personalizar las salidas
 
-In the previous example, you saw one endpoint that rendered into JSON and one that produced an image. Unless instructed otherwise, Plumber will attempt to render whatever your endpoint function returns as JSON. However, you can specify alternative "serializers" which instruct Plumber to render the output as some other format such as HTML (`@html`), PNG (`@png`), or JPEG (`@jpeg`). 
+En el ejemplo anterior viste como un *endpoint* devuelve JSON, y otro produce una imagen. Si no instruyes a Plumber de forma diferente, por defecto Plumber va a tratar de representar lo que devuelve tu función como JSON. Pero puedes especificar "serializadores" (en inglés: *serializers*) que le dan una instrucción a Plumber para representar tu salida (*output*) como otro formato, por ejemplo como HTML (`@html`), PNG (`@png`), o JPEG (`@jpeg`). 
 
 ```{r, echo=FALSE, results='asis'}
 include_r("files/apis/01-02-html.R")
 ```
 
-This endpoint would produce something like the following, when visited. It also sets the appropriate `Content-Type` header so that a browser that visits this page would know to render the result as HTML.
+Este *endpoint* produce algo como a continuación cuando lo visitas. También configura de forma correcta el encabezado `Content-Type` para que el navegador que usas para visitar la página sepa que tiene que representar el resultado como HTML.
 
 ```{r, echo=FALSE, results='asis'}
 pr <- plumber::plumb("files/apis/01-02-html.R")
@@ -77,6 +77,9 @@ e <- pr$endpoints[[1]][[1]]
 code_chunk(e$exec(), "html")
 ```
 
-You can even provide your own custom serializers and define how to translate the R object produced by your endpoint into the bits that will produce Plumber's HTTP response.
+Inclusive puedes especificar tus propios serializadores y definir cómo traducir un objeto R producido por tu *endpoint* a los bits que la respuesta HTTP de Plumber va a producir.
 
-You can find more details in the [Rendering & Output chapter](#rendering-and-output).
+Puedes encontrar más detalles en el [Capítulo de Representación y Salidas](#representacion-y-salidas).
+
+
+
