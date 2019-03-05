@@ -142,6 +142,13 @@ function(req){
 }
 ```
 
+En este caso el objeto `req` será extendido para tener una propiedad adicional
+llamada `username` la cual representa un valor revisado desde un *(cookie)*. 
+Esta propiedad `req$username` estará disponible a todos los filtros subsecuentes
+y endpoints procesando ésta petición. (Hacer valer que este ejemplo no es un
+sistema seguro para autentificarse; revisar la [sección sobre uso de cookies para guardar un estado](#state-cookies) para una mayor discusión sobre el porqué). Una vez que
+ha sido modificado el objeto del pediddo, pasará el control al siguiente 
+*(handler)* usando `forward()`
 In this case, the `req` object is going to be extended to have an additional property named `username` which represents a value looked up from a cookie. This `req$username` property would be available to all subsequent filters and endpoints processing this request. (Note that this example is not a secure system for authentication; see the [section on using cookies to store state](#state-cookies) for a longer discussion on why.) Once it has modified the request object, it passes control to the next handler using `forward()`.
 
 ### Return a Response
