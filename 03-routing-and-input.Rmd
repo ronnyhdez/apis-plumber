@@ -128,7 +128,7 @@ Finalmente, un filtro puede tirar un error. Esto puede pasar si un error fué in
 
 ## Rutas dinámicas {#dynamic-routes}
 
-Además de tener rutas de codificación fija, como `/hola`, los enlaces de Plumber pueden tener rutas dinamicas. Rutas dinamicas te permiten definir una serie de caminos mas flexibles, contra los cuales tienen que coincidir tus enlaces.
+Además de tener rutas de codificación fija, como `/hola`, los enlaces de Plumber pueden tener rutas dinamicas. Rutas dinamicas te permiten definir una serie de caminos más flexibles, contra los cuales tienen que coincidir tus enlaces.
 
 Una convención común en REST es incluir el identificador de un objeto en el camino del API asociado con el. Por ejemplo, para buscar información sobre usuario #13, podrias mandar una solicitud `GET` al camino `/usuarios/13`. En vez de tener que registrar una ruta para cada uusuario que de tu API podria tener en algún momento, puedes usar una ruta dinamica para asociar un enlace con una variedad de caminos.
 
@@ -136,11 +136,11 @@ Una convención común en REST es incluir el identificador de un objeto en el ca
 include_r("files/apis/03-01-dynamic.R")
 ```
 
-Esta API usa el camino dinamico `/users/<id>` para buscar la concidencia entre cualquier solicitud que entra con la forma `/usuarios/` seguido por un elemento adicional del caminio como un numero o una letra. En este caso va a devolver información sobre el usuario si el usuario se encontró con un ID correspondiente, o un objeto vacio si no se encontro.
+Esta API usa el camino dinámico `/users/<id>` para buscar la concidencia entre cualquier solicitud que entra con la forma `/usuarios/` seguido por un elemento adicional del caminio como un numero o una letra. En este caso va a devolver información sobre el usuario si el usuario se encontró con un ID correspondiente, o un objeto vacio si no se encontro.
 
-Puedes darles cualquier nombre a estos elementos del camino que te guste, pero toma en cuenta que el nombre usado en el camino dinamico tiene que coincidir con un parametro de la función (en este caso `id`). 
+Puedes darle cualquier nombre a estos elementos del camino que te guste, pero toma en cuenta que el nombre usado en el camino dinámico tiene que coincidir con un parametro de la función (en este caso `id`). 
 
-Puedes construir rutas dinamicas aun mas complejas como:
+Puedes construir rutas dinámicas aún más complejas como:
 
 ```r
 #' @get /usuario/<de>/connecta/<a>
@@ -149,7 +149,8 @@ function(de, a){
 }
 ```
 
-In both the hard-coded and dynamic examples given above, the parameters will be provided to the function as a character string.
+En ambos ejemplos mostrados, el escrito en código y el dinámico, los parámetros
+serán dados a la función como un *(string)* de caracteres.
 
 ## Typed Dynamic Routes {#typed-dynamic-routes}
 
@@ -164,7 +165,7 @@ Visiting http://localhost:8000/types/14 will return:
 ```{r, echo=FALSE, results='asis'}
 pr <- plumber::plumb("files/apis/03-02-types.R")
 e <- pr$endpoints[[1]][[1]]
-code_chunk(json_serialize(e$exec(id="14")), "json")
+code_chunk(json_serialize(e$exec(id = "14")), "json")
 ```
 
 If you only intend to support a particular data type for a particular parameter in your dynamic route, you can specify the desired type in the route itself.
