@@ -51,10 +51,20 @@ Las *(annotations)* que generan un endpoint incluyen:
  - `@delete`
  - `@head`
 
+*¿?* Este mapa de los métodos de HTTP que un cliente API puede enviar en conjunto
+con una petición. Por defecto cuando se abre una página en un navegador web, 
+se envía una petición `GET` al API. Sin embargo puedes usar otros clientes API
+(o inclusive JavaScript dentro de un navegador web) para formular peticiones
+HTTP usando los otros métodos listados aquí. Existen convenciones sobre cuándo
+cada uno de estos métodos debe de ser usados, para lo cual puedes leer más 
+[aquí](http://www.restapitutorial.com/lessons/httpmethods.html). Tome en cuenta
+que cada una de estas convenciones acarrea consigo implicaciones de seguridad, 
+por lo que es una buena idea seguir los usos recomendados para cada método hasta
+que comprenda completamente porqué podría  *(deviate)* de estos.
 
-These map to the HTTP methods that an API client might send along with a request. By default when you open a page in a web browser, that sends a `GET` request to the API. But you can use other API clients (or even JavaScript inside of a web browser) to form HTTP requests using the other methods listed here. There are conventions around when each of these methods should be used which you can read more about [here](http://www.restapitutorial.com/lessons/httpmethods.html). Note that some of these conventions carry with them security implications, so it's a good idea to follow the recommended uses for each method until you fully understand why you might deviate from them.
-
-Note that a single endpoint can support multiple verbs. The following function would be used to service any incoming `GET`, `POST`, or `PUT` request to `/cars`.
+Tome en cuenta que un endpoint en particular puede *(support)* múltiples verbos.
+La siguiente función será usada para servir a cualquier petición `GET`, `POST`
+o `PUT` petición para  `/cars`.
 
 ```r
 #' @get /cars
@@ -65,25 +75,36 @@ function(){
 }
 ```
 
-## Filters {#filters}
+## Filttros {#filters}
 
-Plumber filters can be used to define a "pipeline" for handling incoming requests. This allows API authors to break down complex logic into a sequence of independent, understandable steps. Unlike endpoints, a request may go through multiple Plumber filters before a response is generated. 
+Los filtros  de Plumber pueden ser usados para definir un *(pipeline)* para
+manejar peticiones entrantes. Esto permite a los autores del API segmentar
+lógica compleja en una secuencia de pasos independientes  y comprensibles.
+A diferencia de los endpoints, una petición puede pasar a través de múltiples
+filtros  de Plumber previo a que una respuesta sea generada.
 
-Typically, a Plumber router will pass a request through all the defined filters before it attempts to find an endpoint to satisfy the request. However, endpoints can "preempt" particular filters if they want to be considered for execution before some filter(s) registered in the router.
+Genermente, un router de Plumber pasará una petición a través de todos los
+filtros definidos previo a buscar un endpoint que satisfaga la petición. Sin 
+embargo, los endpoints pueden  *(preempt)* filtros en particular si ellos
+quieren ser considerados para la ejecución previo a que algunos filtros sean
+registrado en el *(router)*.
 
 // TODO: graphic
 
-Filters can do one of three things in handling a request:
+Filtros pueden hacer una de tres opciones al manejar una petición:
 
-1. Forward control onto the next handler, potentially after mutating the request.
-2. Return a response itself and not forward to subsequent handlers
-3. Throw an error
+1. Delegar el control hacia el siguiente *(handler)*, potencialmente después de modificar la petición.
+2. Retornar una respuesta por sí mismo y no delegar el control a los siguientes *(handlers)*
+3. Devolver un error
 
-These three options, and why each might be desired, are discussed below.
+Estas opciones, y porqué cada una podría ser deseada, son discutidas abajo.
 
-### Forward to Another Handler
+### *(Forward to Another Handler)* ¿Pasar al siguiente controlador?
 
-The most common behavior for a filter is to pass on the request to the next handler after mutating the incoming request or invoking some external side-effect. One common use case is to use a filter as a request logger:
+El comportamiento más común para un filtro es pasar la petición al siguiente
+*(handler)* después de haber modificado la petición o haber invocado algún
+efecto colateral externo. Un caso común de uso es usar un filtro  como un
+*(request logger)*:
 
 ```r
 #* Log some information about the incoming request
@@ -96,10 +117,18 @@ function(req){
 }
 ```
 
-This filter is straightfoward: it invokes an external action (logging) and then calls `forward()` to pass control to the next handler in the pipeline (another filter or an endpoint).
+Este filtro es *(straightfoward)*: invoca una acción externa (*(logging)*) y 
+luego llama `forward()` para pasar el control al siguiente *(handler)* en el
+*(pipeline)* (otro filtro y otro endpoint).
 
-Because the `req` and `res` parameters in Plumber are based on R environments, they exhibit "pass-by-reference" behavior. This means that changes that are made in one filter on the `req` or `res` object will be visible to other filters or endpoints also touching this same request or response.
+Debido a que los parámetros `req` y `res` en Plumber están basados en los
+ambientes de R, estos exhiben un comportamiento "*(pass-by-reference)*". Esto
+quiere decir que los cambios que sean hechos en un filtro en el objeto `req` o
+`res` serán visibles para los otros filtros o endpoints que también están
+relacionados con la misma petición o respuesta.
 
+Un filtro similar puede cambiar algún estado en la respuesta o petición que se le ha dado
+*¿?*
 A similar filter may mutate some state on the request or response object it's given.
 
 ```r
