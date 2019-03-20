@@ -152,15 +152,15 @@ function(de, a){
 En ambos ejemplos mostrados, el escrito en código y el dinámico, los parámetros
 serán dados a la función como un *(string)* de caracteres.
 
-## Typed Dynamic Routes {#typed-dynamic-routes}
+## Rutas dinámicas escritas {#typed-dynamic-routes}
 
-Unless otherwise instructed, all parameters passed into plumber endpoints from query strings or dynamic paths will be character strings. For example, consider the following API.
+A menos que sea indicado de otra manera, todos los parámetros pasados a endoints de plumber desde consultas o caminos dinámicos serán cadenas de carácteres (strings). Por ejemplo, considere el siguiente API:
 
 ```{r, echo=FALSE, results='asis'}
 include_r("files/apis/03-02-types.R")
 ```
 
-Visiting http://localhost:8000/types/14 will return:
+Visitando http://localhost:8000/types/14 nos devolverá:
 
 ```{r, echo=FALSE, results='asis'}
 pr <- plumber::plumb("files/apis/03-02-types.R")
@@ -168,7 +168,8 @@ e <- pr$endpoints[[1]][[1]]
 code_chunk(json_serialize(e$exec(id = "14")), "json")
 ```
 
-If you only intend to support a particular data type for a particular parameter in your dynamic route, you can specify the desired type in the route itself.
+Si solamente tiene la intención de admitir un tipo particular de datos para un parámetro en particular en su ruta dinámica (dynamic route), puede especificar el tipo deseado en la misma ruta.
+
 
 ```r
 #* @get /user/<id:int>
@@ -184,42 +185,42 @@ function(active){
   }
 }
 ```
+Especificar el tipo de algún elemento del camino dinámico también reducirá los caminos (paths) que coincidirán con el endpoint. Por ejemplo, el camino (path) `/users/123` coincidirá el primer endpoint, pero `/users/8e3k` no, ya que `8e3k` no es un entero.
 
-Specifying the type of a dynamic path element will also narrow the paths that will match the endpoint. For instance, the path `/users/123` will match the first endpoint, but `/users/8e3k` will not, since `8e3k` is not an integer.
+Los siguientes detalles del mapeo del tipo de nombres que puede usar en sus tipos dinámicos y cómo estos mapean los tipos de datos en R.
 
-The following details the mapping of the type names that you can use in your dynamic types and how they map to R data types.
-
-R Type  | Plumber Name
+Tipo en R  | Nombre en Plumber
 ------- | ---------
 logical |	`bool`, `logical`
 numeric	| `double`, `numeric`
 integer	| `int`
 
-## Static File Handler
+## Manejador de archivos estáticos
 
-Plumber includes a static file server which can be used to host directories of static assets such as JavaScript, CSS, or HTML files. These servers are fairly simple to configure and integrate into your plumber application.
+Plumber incluye un servidor de archivos estáticos que puede ser usado para albergar repositorios de activos estáticos (static assets) tal como JavaScript, CSS o archivos HTML. Estos servidores son bastante simples para configurar e integrar con su aplicación de plumber.
 
 ```r
 #* @assets ./files/static
 list()
 ```
 
-This example would expose the local directory `./files/static` at the default `/public` path on your server. So if you had a file `./files/static/branding.html`, it would be available on your Plumber server at `/public/branding.html`. 
+Este ejemplo expondrá el directorio local `./files/static` al camino por defecto `/public` en su servidor. Por lo que si usted tiene un archivo `./files/static/branding.html`, estará disponible en su servidor de Plumber en `/public/branding.html`.
 
-You can optionally provide an additional argument to configure the public path used for your server. For instance
+Usted puede opcionalmente proveer un argumento adicional para configurar el camino público usado por su servidor. Por ejemplo:
 
 ```r
 #* @assets ./files/static /static
 list()
 ```
 
-would expose the local directory `files/static` not at `/public`, but at `/static`. Likewise, to serve a main `index.html`, you can also map `/files/static` to `/` by using
+Expondrá el directorio local `files/static` no en `/public`, pero en `/static`. De igual forma, para servir un principal `index.html`, puede también mapear `/files/static` a `/` usando
 
 ```r
 #* @assets ./files/static /
 list()
 ```
-That enables you to serve your `/files/static/index.html` under the http://localhost:8000/ root URL.
+Esto permite servir su `/files/static/index.html` bajo el URL raíz http://localhost:8000/
+
 
 The "implementation" of your server in the above examples is just an empty `list()`. You can also specify a `function()` like you do with the other plumber annotations. At this point, the implementation doesn't alter the behavior of your static server. Eventually, this list or function may provide an opportunity to configure the server by changing things like cache control settings.
 
